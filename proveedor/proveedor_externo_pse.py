@@ -4,10 +4,10 @@
 from datetime import datetime, timezone
 
 class PSE:
-
+    
     #respuesta del proveedor
     CODIGO_APROBADO  = "00"
-    CODIGO_RECHAZADO = "51"
+    CODIGO_RECHAZADO = "99"
     LIMITE_MONTO = 10_000_000
 
     def executeTransaction(self, user: str,amount: float,currency: str) -> dict:
@@ -21,7 +21,7 @@ class PSE:
         if amount <= self.LIMITE_MONTO:
             return {
                 "resultCode": self.CODIGO_APROBADO,
-                "authId":     "PSE-AUTH-4471",
+                "authId":     "PSE-AUTH-1289",
                 "timestamp":  timestamp
             }
 

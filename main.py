@@ -1,21 +1,20 @@
-import subprocess
-import sys
-from sistema_acoplado.acoplado import crear_orden_acoplada
+# main.py
 
-VERDE   = "\033[92m"
-ROJO    = "\033[91m"
-AMARILLO= "\033[93m"
-CYAN    = "\033[96m"
-NEGRITA = "\033[1m"
-RESET   = "\033[0m"
+from sistema_orden.acoplado import crear_orden_acoplada, orden_acoplada_paypal
+from interfaz.servicioPago import ServicioPago
+from sistema_orden.sistemaConInterfaz import SistemaOrdenes
 
-def ok(txt):    print(f"  {VERDE} {txt}{RESET}")
-def error(txt): print(f"  {ROJO} {txt}{RESET}")
-def info(txt):  print(f"  {CYAN} {txt}{RESET}")
-def warn(txt):  print(f"  {AMARILLO} {txt}{RESET}")
+VERDE    = "\033[92m"
+ROJO     = "\033[91m"
+NEGRITA  = "\033[1m"
+RESET    = "\033[0m"
+
+def ok(txt):        print(f"  {VERDE} {txt}{RESET}")
+def error(txt):     print(f"  {ROJO} {txt}{RESET}")
 def linea(c="─", n=58): print(c * n)
 def titulo(t):
     print(); linea("═"); print(f"  {NEGRITA}{t}{RESET}"); linea("═")
+
 
 def pedir_datos():
     print()
@@ -24,9 +23,10 @@ def pedir_datos():
     try:
         monto = float(monto_s)
     except ValueError:
-        warn("Monto inválido, se usará 5.000.000.")
+        print("Monto inválido, se usará 5.000.000.")
         monto = 5_000_000.0
     return cliente, monto
+
 
 def mostrar_orden(orden):
     print()
@@ -38,12 +38,13 @@ def mostrar_orden(orden):
     print(f"  Orden ID            : {orden['ordenId']}")
     print(f"  Código autorización : {orden.get('codigoAutorizacion') or '—'}")
 
+
 def opcion_1():
-    titulo("OPCIÓN 1 — Acoplamiento directo con PSE")
+    titulo("PASO 1 — Acoplamiento directo con PSE")
 
     cliente, monto = pedir_datos()
 
-    print(f"  {NEGRITA}Llamada al proveedor:{RESET}")
+    print(f"\n  {NEGRITA}Llamada al proveedor:{RESET}")
     try:
         orden = crear_orden_acoplada(cliente, monto)
         mostrar_orden(orden)
@@ -51,23 +52,69 @@ def opcion_1():
         error(f"Error inesperado: {e}")
 
 
+def opcion_2():
+    titulo("PASO 2 — Análisis de impacto del cambio (PayPal)")
+
+    cliente, monto = pedir_datos()
+
+    print(f"\n  {NEGRITA}Llamada al proveedor:{RESET}")
+    try:
+        orden = orden_acoplada_paypal(cliente, monto)
+        mostrar_orden(orden)
+    except TypeError as e:
+        error(f"TypeError → {e}")
+        print()
+        print(f"  {ROJO}Causa: PayPal exige 'descripcion' y 'producto' pero el sistema no lo envía.{RESET}")
+        print(f"  {ROJO}Para corregirlo habría que modificar el sistema principal.{RESET}")
+    except KeyError as e:
+        error(f"KeyError → campo {e} ya no existe en la respuesta de PayPal")
+        print()
+        print(f"  {ROJO}Causa: el campo fue renombrado por PayPal.{RESET}")
+        print(f"  {ROJO}El sistema principal debe actualizarse.{RESET}")
+
+def opcion_3():
+    titulo("PASO 3 — Contrato interno estable (ServicioPago)")
+    print()
+
+    print(f"  {NEGRITA}Verificación 1 — El sistema funciona con el contrato:{RESET}")
+
+    # Implementación del contrato para demostrar que funciona
+    class ServicioMock(ServicioPago):
+        def procesarPago(self, clienteId: str, monto: float) -> dict:
+            return {"estado": "APROBADO", "codigoAutorizacion": "MOCK-001"}
+
+    cliente, monto = pedir_datos()
+
+    sistema = SistemaOrdenes(ServicioMock()) 
+    orden   = sistema.crearOrden(cliente, monto)
+    mostrar_orden(orden)
+
+    print()
+    print("El sistema creó la orden sin conocer PSE ni PayPal.")
+
+
 def menu():
     while True:
-        titulo("TALLER II — INTEROPERABILIDAD ADAPTADOR DE INTERFAZ" )
-        print(f"  {NEGRITA}1.{RESET} Implementacion Ingenuea Acoplamiento — PSE")
+        titulo("TALLER II — INTEROPERABILIDAD ADAPTADOR DE INTERFAZ")
+        print(f"  {NEGRITA}1.{RESET} Paso 1 — Implementación ingenua acoplada (PSE)")
+        print(f"  {NEGRITA}2.{RESET} Paso 2 — Análisis de impacto del cambio (PayPal)")
+        print(f"  {NEGRITA}3.{RESET} Paso 3 — Contrato interno estable (ServicioPago)")
+        print(f"  {NEGRITA}0.{RESET} Salir")
         print()
         opcion = input("  Selecciona una opción: ").strip()
 
         if   opcion == "1": opcion_1()
+        elif opcion == "2": opcion_2()
+        elif opcion == "3": opcion_3()
         elif opcion == "0":
             print()
-            info("Hasta luego.")
+            print("Hasta luego.")
             break
         else:
-            warn("Opción no válida.")
+            print("Opción no válida.")
 
         print()
-        input("Presiona Enter para volver al menú")
+        input("  Presiona Enter para volver al menú...")
 
 
 if __name__ == "__main__":

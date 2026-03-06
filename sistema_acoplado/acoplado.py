@@ -1,11 +1,12 @@
 from proveedor.proveedor_externo_pse import PSE
+from proveedor.proveedor_externo_paypal import Paypal
 
 class SistemaOrdenesAcoplado:
     
     CODIGO_APROBADO = "00"
 
-    def __init__(self):
-        self._proveedor = PSE()
+    def __init__(self, proveedor):
+        self._proveedor = proveedor
 
     def crearOrden(self, cliente_id: str, monto: float) -> dict:
         respuesta = self._proveedor.executeTransaction(
@@ -24,4 +25,8 @@ class SistemaOrdenesAcoplado:
 
 #crear una orden usando el sistema acoplado
 def crear_orden_acoplada(cliente_id: str, monto: float) -> dict:
-    return SistemaOrdenesAcoplado().crearOrden(cliente_id, monto)
+    return SistemaOrdenesAcoplado(PSE()).crearOrden(cliente_id, monto)
+
+#crear una orden con cambios en el proveedor
+def orden_acoplada_paypal(cliente_id: str, monto: float) -> dict:
+     return SistemaOrdenesAcoplado(Paypal()).crearOrden(cliente_id, monto)

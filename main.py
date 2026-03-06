@@ -1,6 +1,8 @@
 # main.py
 
-from sistema_acoplado.acoplado import crear_orden_acoplada, orden_acoplada_paypal
+from sistema_orden.acoplado import crear_orden_acoplada, orden_acoplada_paypal
+from interfaz.servicioPago import ServicioPago
+from sistema_orden.sistemaConInterfaz import SistemaOrdenes
 
 VERDE    = "\033[92m"
 ROJO     = "\033[91m"
@@ -70,18 +72,40 @@ def opcion_2():
         print(f"  {ROJO}Causa: el campo fue renombrado por PayPal.{RESET}")
         print(f"  {ROJO}El sistema principal debe actualizarse.{RESET}")
 
+def opcion_3():
+    titulo("PASO 3 — Contrato interno estable (ServicioPago)")
+    print()
+
+    print(f"  {NEGRITA}Verificación 1 — El sistema funciona con el contrato:{RESET}")
+
+    # Implementación del contrato para demostrar que funciona
+    class ServicioMock(ServicioPago):
+        def procesarPago(self, clienteId: str, monto: float) -> dict:
+            return {"estado": "APROBADO", "codigoAutorizacion": "MOCK-001"}
+
+    cliente, monto = pedir_datos()
+
+    sistema = SistemaOrdenes(ServicioMock()) 
+    orden   = sistema.crearOrden(cliente, monto)
+    mostrar_orden(orden)
+
+    print()
+    print("El sistema creó la orden sin conocer PSE ni PayPal.")
+
 
 def menu():
     while True:
         titulo("TALLER II — INTEROPERABILIDAD ADAPTADOR DE INTERFAZ")
         print(f"  {NEGRITA}1.{RESET} Paso 1 — Implementación ingenua acoplada (PSE)")
         print(f"  {NEGRITA}2.{RESET} Paso 2 — Análisis de impacto del cambio (PayPal)")
+        print(f"  {NEGRITA}3.{RESET} Paso 3 — Contrato interno estable (ServicioPago)")
         print(f"  {NEGRITA}0.{RESET} Salir")
         print()
         opcion = input("  Selecciona una opción: ").strip()
 
         if   opcion == "1": opcion_1()
         elif opcion == "2": opcion_2()
+        elif opcion == "3": opcion_3()
         elif opcion == "0":
             print()
             print("Hasta luego.")

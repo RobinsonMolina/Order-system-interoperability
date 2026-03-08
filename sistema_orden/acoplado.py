@@ -24,9 +24,9 @@ class SistemaOrdenesAcoplado:
         }
 
 #crear una orden usando el sistema acoplado
-def crear_orden_acoplada(cliente_id: str, monto: float) -> dict:
+def crear_orden_acoplada_pse(cliente_id: str, monto: float) -> dict:
     return SistemaOrdenesAcoplado(PSE()).crearOrden(cliente_id, monto)
 
 #crear una orden con cambios en el proveedor
-def orden_acoplada_paypal(cliente_id: str, monto: float) -> dict:
+def crear_orden_acoplada_paypal(cliente_id: str, monto: float) -> dict:
      return SistemaOrdenesAcoplado(Paypal()).crearOrden(cliente_id, monto)

@@ -1,121 +1,79 @@
-# main.py
-
-from sistema_orden.acoplado import crear_orden_acoplada, orden_acoplada_paypal
-from interfaz.servicioPago import ServicioPago
+import subprocess
+import sys
+from sistema_orden.acoplado import crear_orden_acoplada_pse, crear_orden_acoplada_paypal
+from adaptador.adaptador_pse import AdaptadorPSE
+from adaptador.adaptador_paypal import AdaptadorPaypal
+from adaptador.adaptador_nequi import AdaptadorNequi
 from sistema_orden.sistemaConInterfaz import SistemaOrdenes
 
-VERDE    = "\033[92m"
-ROJO     = "\033[91m"
-NEGRITA  = "\033[1m"
-RESET    = "\033[0m"
-
-def ok(txt):        print(f"  {VERDE} {txt}{RESET}")
-def error(txt):     print(f"  {ROJO} {txt}{RESET}")
-def linea(c="─", n=58): print(c * n)
-def titulo(t):
-    print(); linea("═"); print(f"  {NEGRITA}{t}{RESET}"); linea("═")
-
+def mostrar_orden(orden):
+    print("\n  --- Resultado de la Transacción ---")
+    print(f"  Estado              : {orden['estado']}")
+    print(f"  Orden ID            : {orden['ordenId']}")
+    print(f"  Código Autorización : {orden.get('codigoAutorizacion') or 'N/A'}\n")
 
 def pedir_datos():
-    print()
-    cliente = input(f"  {NEGRITA}Cliente ID {RESET}(Enter = 'cliente-001'): ").strip() or "cliente-001"
-    monto_s = input(f"  {NEGRITA}Monto COP  {RESET}(Enter = 5000000)     : ").strip() or "5000000"
-    try:
-        monto = float(monto_s)
-    except ValueError:
-        print("Monto inválido, se usará 5.000.000.")
-        monto = 5_000_000.0
-    return cliente, monto
-
-
-def mostrar_orden(orden):
-    print()
-    aprobado = orden["estado"] == "APROBADO"
-    if aprobado:
-        ok(f"Pago {orden['estado']}")
-    else:
-        error(f"Pago {orden['estado']}")
-    print(f"  Orden ID            : {orden['ordenId']}")
-    print(f"  Código autorización : {orden.get('codigoAutorizacion') or '—'}")
-
-
-def opcion_1():
-    titulo("PASO 1 — Acoplamiento directo con PSE")
-
-    cliente, monto = pedir_datos()
-
-    print(f"\n  {NEGRITA}Llamada al proveedor:{RESET}")
-    try:
-        orden = crear_orden_acoplada(cliente, monto)
-        mostrar_orden(orden)
-    except Exception as e:
-        error(f"Error inesperado: {e}")
-
-
-def opcion_2():
-    titulo("PASO 2 — Análisis de impacto del cambio (PayPal)")
-
-    cliente, monto = pedir_datos()
-
-    print(f"\n  {NEGRITA}Llamada al proveedor:{RESET}")
-    try:
-        orden = orden_acoplada_paypal(cliente, monto)
-        mostrar_orden(orden)
-    except TypeError as e:
-        error(f"TypeError → {e}")
-        print()
-        print(f"  {ROJO}Causa: PayPal exige 'descripcion' y 'producto' pero el sistema no lo envía.{RESET}")
-        print(f"  {ROJO}Para corregirlo habría que modificar el sistema principal.{RESET}")
-    except KeyError as e:
-        error(f"KeyError → campo {e} ya no existe en la respuesta de PayPal")
-        print()
-        print(f"  {ROJO}Causa: el campo fue renombrado por PayPal.{RESET}")
-        print(f"  {ROJO}El sistema principal debe actualizarse.{RESET}")
-
-def opcion_3():
-    titulo("PASO 3 — Contrato interno estable (ServicioPago)")
-    print()
-
-    print(f"  {NEGRITA}Verificación 1 — El sistema funciona con el contrato:{RESET}")
-
-    # Implementación del contrato para demostrar que funciona
-    class ServicioMock(ServicioPago):
-        def procesarPago(self, clienteId: str, monto: float) -> dict:
-            return {"estado": "APROBADO", "codigoAutorizacion": "MOCK-001"}
-
-    cliente, monto = pedir_datos()
-
-    sistema = SistemaOrdenes(ServicioMock()) 
-    orden   = sistema.crearOrden(cliente, monto)
-    mostrar_orden(orden)
-
-    print()
-    print("El sistema creó la orden sin conocer PSE ni PayPal.")
-
+    cliente = input("\n  Cliente ID (Enter = 'cli-001'): ").strip() or "cli-001"
+    monto_s = input("  Monto COP  (Enter = 50000)  : ").strip() or "50000"
+    return cliente, float(monto_s) if monto_s.isdigit() else 50000.0
 
 def menu():
     while True:
-        titulo("TALLER II — INTEROPERABILIDAD ADAPTADOR DE INTERFAZ")
-        print(f"  {NEGRITA}1.{RESET} Paso 1 — Implementación ingenua acoplada (PSE)")
-        print(f"  {NEGRITA}2.{RESET} Paso 2 — Análisis de impacto del cambio (PayPal)")
-        print(f"  {NEGRITA}3.{RESET} Paso 3 — Contrato interno estable (ServicioPago)")
-        print(f"  {NEGRITA}0.{RESET} Salir")
-        print()
-        opcion = input("  Selecciona una opción: ").strip()
+        print("\n=== INTEROPERABILIDAD DE PAGOS ===")
+        print("  1. Acoplamiento directo - PSE (Funciona)")
+        print("  2. Acoplamiento directo - Paypal (Falla por acoplamiento)")
+        print("  3. Sistema con Adaptador (Estable)")
+        print("  4. Ejecutar Pruebas")
+        print("  0. Salir")
+        
+        opc = input("\n  Selecciona una opción: ").strip()
 
-        if   opcion == "1": opcion_1()
-        elif opcion == "2": opcion_2()
-        elif opcion == "3": opcion_3()
-        elif opcion == "0":
+        if opc == "0": break
+
+        if opc in ["1", "2"]:
+            cliente, monto = pedir_datos()
+            try:
+                if opc == "1":
+                    orden = crear_orden_acoplada_pse(cliente, monto)
+                else:
+                    orden = crear_orden_acoplada_paypal(cliente, monto)
+                mostrar_orden(orden)
+            except Exception as e:
+                print(f"\n  [ERROR] Fallo de integración: {e}")
+                print("  El sistema falló al intentar usar un proveedor distinto de la forma acoplada.")
+        
+        elif opc == "3":
+            print("\n  a) PSE\n  b) Paypal\n  c) Nequi")
+            sel = input("  Elige proveedor: ").strip().lower()
+            
+            adps = {"a": AdaptadorPSE(), "b": AdaptadorPaypal(), "c": AdaptadorNequi()}
+            adaptador = adps.get(sel, AdaptadorPSE())
+            
+            cliente, monto = pedir_datos()
+            orden = SistemaOrdenes(adaptador).crearOrden(cliente, monto)
+            mostrar_orden(orden)
+            
+        elif opc == "4":
+            print("\n  Ejecutando pruebas...")
+            resultado = subprocess.run(
+
+            [sys.executable, "-m", "unittest", "discover", "tests", "-v"],
+                capture_output=False
+
+            )
+
             print()
-            print("Hasta luego.")
-            break
+
+            if resultado.returncode == 0:
+
+                print("Todas las pruebas pasaron correctamente.")
+
+            else:
+
+                print("Algunas pruebas fallaron. Revisa la salida anterior.")
+        
         else:
-            print("Opción no válida.")
-
-        print()
-        input("  Presiona Enter para volver al menú...")
-
+            print("  Opción no válida.")
 
 if __name__ == "__main__":
     menu()

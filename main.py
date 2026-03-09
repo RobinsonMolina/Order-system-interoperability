@@ -4,7 +4,7 @@ from sistema_orden.acoplado import crear_orden_acoplada_pse, crear_orden_acoplad
 from adaptador.adaptador_pse import AdaptadorPSE
 from adaptador.adaptador_paypal import AdaptadorPaypal
 from adaptador.adaptador_nequi import AdaptadorNequi
-from sistema_orden.sistemaConInterfaz import SistemaOrdenes
+from sistema_orden.sistema_ordenes import SistemaOrdenes
 
 def mostrar_orden(orden):
     print("\n  --- Resultado de la Transacción ---")

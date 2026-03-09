@@ -56,13 +56,15 @@ Verás el siguiente menú:
 ══════════════════════════════════════════════════════════
   TALLER II — INTEROPERABILIDAD ADAPTADOR DE INTERFAZ
 ══════════════════════════════════════════════════════════
-  1. Paso 1 — Implementación ingenua acoplada (PSE)
-  2. Paso 2 — Análisis de impacto del cambio (PayPal)
-  3. Paso 3 — Contrato interno estable (ServicioPago)
-  4. Paso 4 — Sistema desacoplado con AdaptadorPSE
-  5. Paso 5 — Ejecutar pruebas automatizadas
-  6. Paso 6 — Segundo proveedor con AdaptadorPayPal / Nequi
+  1. Acoplamiento directo - PSE (Funciona)
+  2. Acoplamiento directo - Paypal (Falla por acoplamiento)
+  3. Sistema con Adaptador (Estable)
+  4. Ejecutar Pruebas
   0. Salir
+
+De esta manera el la opcion 1 corresponde al paso 1, la opcion 2 al paso 2, la opcion 3 fusiona el paso 3, el paso 4 e inmerso en ella el paso 6, la opcion 4 se referiere al paso 5 y la opcion corrrespondiente para salir del sistema. Este menú fue pensado para ser lo más sencillo posible.
+
+Los pasos se encuentran en el documento Taller_Interoperabilidad_Adaptador.pdf
 ```
 
 ---
@@ -71,14 +73,15 @@ Verás el siguiente menú:
 
 ```
 Order-system-interoperability/
-├── main.py                          # Punto de entrada — menú interactivo
+├── main.py                         # Punto de entrada — menú interactivo
+├── README.md                         #Readme técnico                   
 │
 ├── interfaz/
 │   └── servicioPago.py              # ServicioPago (ABC) — contrato estable
 │
 ├── sistema_orden/
 │   ├── acoplado.py                  # Pasos 1 y 2 — sistema acoplado (antipatrón)
-│   └── sistema_ordenes.py           # Pasos 3–6 — sistema desacoplado
+│   └── sistema_ordenes.py           # Pasos 3,4 y 6 — sistema desacoplado
 │
 ├── adaptador/
 │   ├── adaptador_pse.py             # Traduce PSE ↔ contrato interno
@@ -91,13 +94,21 @@ Order-system-interoperability/
 │   └── proveedor_externo_nequi.py   # Nequi — interfaz completamente distinta
 │
 └── test/
-    └── test_adaptador.py            # Pruebas automatizadas con unittest
+│   └── test_adaptador.py            # Pruebas automatizadas con unittest
+│
+├── assets/
+│   ├── diagrama_arquitectura.png                  
+│   └── Taller_Interoperabilidad_Adaptador.pdf                             # Instrucciones taller
+│   └── TTaller2_Interoperabilidad_AlixonLopez_RobinsonMolina.pdf           # Documento final taller
+
 ```
+## Diagrama simple de arquitectura.
+
 ![Diagrama de arquitectura](assets/diagrama_arquitectura.png)
 
 ---
 
-## Ejecutando las pruebas ⚙️
+## Ejecutando las pruebas 
 
 Las pruebas verifican que el sistema principal funcione correctamente con cualquier proveedor y que el contrato interno nunca se rompa.
 ```bash
@@ -112,26 +123,26 @@ Verifican que `ServicioPago` es abstracta y que el sistema respeta el contrato e
 
 Verifican que cada adaptador traduce correctamente y que el sistema produce el mismo resultado con PSE, PayPal o Nequi sin ninguna modificación.
 
-## Despliegue 📦
+## Despliegue 
 
 Este proyecto es académico y no requiere despliegue en producción. Para ejecutarlo en cualquier entorno basta con tener Python 3.10+ instalado y correr `python main.py` desde la raíz del proyecto.
 
 
-## Construido con 🛠️
+## Construido con 
 
 * [Python 3.10+](https://www.python.org/) — Lenguaje de programación
 * [unittest](https://docs.python.org/3/library/unittest.html) — Framework de pruebas (librería estándar)
 * [abc](https://docs.python.org/3/library/abc.html) — Clases abstractas para el contrato interno (librería estándar)
 
-## Articulo 📖
+## Articulo 
 
-Puedes encontrar la documentación completa del taller en el documento pdf denominado Taller2_Interoperabilidad_AlixonLopez_RobinsonMolina
+Puedes encontrar la documentación completa del taller en el documento pdf denominado Taller2_Interoperabilidad_AlixonLopez_RobinsonMolina.pdf
 
 ---
 
-## Autores ✒️
+## Autores 
 
 * **Alixon Lopez** - *Desarrollo completo* - [Alix0n]((https://github.com/Alix0n)
-* **Robinson Molina** - *Desarrollo completo* - [tu-usuario](https://github.com/tu-usuario)
+* **Robinson Molina** - *Desarrollo completo* - [RobinsonMolina]((https://github.com/RobinsonMolina)
 
 ---

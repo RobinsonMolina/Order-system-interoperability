@@ -3,7 +3,7 @@ from interfaz.servicioPago import ServicioPago
 from adaptador.adaptador_pse import AdaptadorPSE
 from adaptador.adaptador_paypal import AdaptadorPaypal
 from adaptador.adaptador_nequi import AdaptadorNequi
-from sistema_orden.sistemaConInterfaz import SistemaOrdenes
+from sistema_orden.sistema_ordenes import SistemaOrdenes
 
 print("""
 ============================================================================================================================================================================
